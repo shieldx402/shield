@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shield App — Private Payments</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:15px;}
+:root{
+  --bg:#0a0a0a;
+  --surface:#111111;
+  --surface2:#181818;
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.04);
+  --text:#c8c8c8;
+  --muted:#555;
+  --white:#f0f0f0;
+  --red:#e53e3e;
+  --red-dim:rgba(229,62,62,0.12);
+  --red-border:rgba(229,62,62,0.25);
+  --green:#22c55e;
+  --green-dim:rgba(34,197,94,0.1);
+  --yellow:#f59e0b;
+}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Space Grotesk',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+::-webkit-scrollbar{width:3px;background:transparent;}
+::-webkit-scrollbar-thumb{background:#222;border-radius:3px;}
+::selection{background:var(--red-dim);color:#fff;}
+
+/* ── TOPBAR ── */
+.topbar{
+  position:fixed;top:0;left:0;right:0;
+  height:56px;z-index:100;
+  background:rgba(10,10,10,0.95);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 24px;gap:16px;
+}
+.topbar-logo{
+  display:flex;align-items:center;gap:10px;
+  text-decoration:none;
+  margin-right:8px;
+}
+.logo-mark{
+  width:30px;height:30px;
+  background:var(--red);
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;
+}
+.logo-text{font-size:15px;font-weight:600;color:var(--white);}
+.topbar-divider{width:1px;height:20px;background:var(--border);margin:0 8px;}
+.chain-badge{
+  display:flex;align-items:center;gap:6px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;padding:5px 12px;
+  font-size:12px;color:var(--text);
+  cursor:pointer;
+  transition:border-color .15s;
+}
+.chain-badge:hover{border-color:rgba(255,255,255,0.15);}
+.chain-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.wallet-btn{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;padding:7px 14px;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:12px;color:var(--text);
+  cursor:pointer;transition:all .15s;
+}
+.wallet-btn:hover{border-color:rgba(255,255,255,0.2);color:var(--white);}
+.wallet-btn.connected{border-color:var(--red-border);color:var(--white);}
+.wallet-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);}
+.wallet-btn.connected .wallet-dot{background:var(--green);}
+
+/* ── LAYOUT ── */
+.app{
+  margin-top:56px;
+  display:grid;
+  grid-template-columns:240px 1fr 320px;
+  min-height:calc(100vh - 56px);
+}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  border-right:1px solid var(--border);
+  padding:20px 12px;
+  background:var(--surface);
+}
+.nav-label{
+  font-size:10px;font-weight:600;color:var(--muted);
+  letter-spacing:.12em;text-transform:uppercase;
+  padding:0 8px;margin:16px 0 6px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:8px;
+  font-size:13px;color:var(--muted);
+  cursor:pointer;transition:all .15s;
+  border:1px solid transparent;
+  user-select:none;
+  margin-bottom:2px;
+}
+.nav-item:hover{background:rgba(255,255,255,0.04);color:var(--text);}
+.nav-item.active{
+  background:var(--red-dim);
+  border-color:var(--red-border);
+  color:var(--white);
+}
+.nav-icon{font-size:15px;width:20px;text-align:center;}
+.nav-badge-count{
+  margin-left:auto;
+  background:var(--red);
+  color:#fff;
+  font-size:10px;font-weight:600;
+  border-radius:10px;padding:1px 6px;
+}
+.sidebar-stats{
+  margin-top:auto;
+  padding:16px 8px 0;
+  border-top:1px solid var(--border);
+  margin-top:24px;
+}
+.stat-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 0;
+}
+.stat-label{font-size:11px;color:var(--muted);}
+.stat-val{font-size:12px;font-weight:500;color:var(--text);font-family:'JetBrains Mono',monospace;}
+.stat-val.green{color:var(--green);}
+
+/* ── MAIN ── */
+.main{
+  padding:28px 32px;
+  overflow-y:auto;
+}
+.page{display:none;}
+.page.active{display:block;}
+
+.page-header{margin-bottom:28px;}
+.page-title{
+  font-size:22px;font-weight:600;
+  color:var(--white);letter-spacing:-.02em;
+  margin-bottom:4px;
+}
+.page-sub{font-size:13px;color:var(--muted);}
+
+/* Tabs */
+.tabs{
+  display:flex;gap:4px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:4px;
+  margin-bottom:24px;
+  width:fit-content;
+}
+.tab{
+  padding:8px 20px;border-radius:7px;
+  font-size:13px;font-weight:500;
+  color:var(--muted);cursor:pointer;
+  transition:all .15s;
+  user-select:none;
+}
+.tab:hover{color:var(--text);}
+.tab.active{background:var(--surface2);color:var(--white);border:1px solid var(--border);}
+
+/* Cards */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:24px;
+  margin-bottom:16px;
+}
+.card-title{
+  font-size:12px;font-weight:600;
+  color:var(--muted);letter-spacing:.08em;text-transform:uppercase;
+  margin-bottom:20px;
+  display:flex;align-items:center;gap:8px;
+}
+.card-title-icon{font-size:14px;}
+
+/* Input */
+.input-group{margin-bottom:16px;}
+.input-label{
+  font-size:12px;color:var(--muted);
+  margin-bottom:6px;display:flex;
+  justify-content:space-between;align-items:center;
+}
+.input-label span{color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;}
+.input-wrap{
+  display:flex;align-items:center;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:8px;
+  transition:border-color .15s;
+  overflow:hidden;
+}
+.input-wrap:focus-within{border-color:var(--red-border);}
+.input-wrap input{
+  flex:1;
+  background:none;border:none;outline:none;
+  padding:12px 14px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:14px;color:var(--white);
+}
+.input-wrap input::placeholder{color:var(--muted);}
+.input-suffix{
+  padding:0 14px;
+  font-size:12px;color:var(--muted);
+  border-left:1px solid var(--border);
+  height:100%;display:flex;align-items:center;
+  white-space:nowrap;
+}
+.input-max{
+  padding:0 12px;
+  font-size:11px;color:var(--red);
+  cursor:pointer;font-weight:600;
+  letter-spacing:.05em;
+}
+.input-max:hover{color:#ff6b6b;}
+
+/* Denomination pills */
+.denom-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.denom{
+  padding:6px 14px;border-radius:20px;
+  font-size:12px;font-weight:500;
+  background:var(--bg);
+  border:1px solid var(--border);
+  color:var(--muted);cursor:pointer;
+  transition:all .15s;
+  font-family:'JetBrains Mono',monospace;
+}
+.denom:hover{border-color:var(--red-border);color:var(--text);}
+.denom.active{
+  background:var(--red-dim);
+  border-color:var(--red-border);
+  color:var(--white);
+}
+
+/* Privacy meter */
+.privacy-meter{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:14px;
+  margin-bottom:16px;
+  display:flex;align-items:center;gap:14px;
+}
+.privacy-icon{font-size:20px;}
+.privacy-info{flex:1;}
+.privacy-title{font-size:12px;color:var(--text);font-weight:500;margin-bottom:4px;}
+.privacy-bar{height:4px;background:var(--border);border-radius:4px;overflow:hidden;}
+.privacy-fill{height:100%;border-radius:4px;background:linear-gradient(to right,var(--yellow),var(--green));transition:width .5s ease;}
+.privacy-label{font-size:10px;color:var(--muted);margin-top:4px;}
+
+/* Buttons */
+.btn{
+  width:100%;padding:13px;
+  border-radius:10px;border:none;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-primary{
+  background:var(--red);color:#fff;
+}
+.btn-primary:hover{background:#c53030;transform:translateY(-1px);}
+.btn-primary:active{transform:translateY(0);}
+.btn-primary:disabled{background:var(--muted);cursor:not-allowed;transform:none;}
+.btn-ghost{
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--text);
+}
+.btn-ghost:hover{border-color:rgba(255,255,255,0.2);color:var(--white);}
+
+/* Note box */
+.note-box{
+  background:var(--bg);
+  border:1px solid var(--red-border);
+  border-radius:8px;padding:14px;
+  margin-top:16px;
+  display:none;
+}
+.note-box.show{display:block;}
+.note-label{font-size:11px;color:var(--red);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;font-weight:600;}
+.note-value{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--text);
+  word-break:break-all;line-height:1.6;
+  background:rgba(0,0,0,0.3);
+  padding:10px;border-radius:6px;
+}
+.note-actions{display:flex;gap:8px;margin-top:10px;}
+.note-btn{
+  flex:1;padding:7px;border-radius:6px;
+  font-size:11px;font-weight:600;
+  border:1px solid var(--border);
+  background:transparent;color:var(--muted);
+  cursor:pointer;font-family:'Space Grotesk',sans-serif;
+  transition:all .15s;letter-spacing:.05em;
+}
+.note-btn:hover{color:var(--white);border-color:rgba(255,255,255,0.2);}
+.note-btn.danger{color:#fc8181;border-color:rgba(229,62,62,0.3);}
+.note-btn.danger:hover{background:var(--red-dim);}
+
+/* Status badge */
+.status{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;padding:3px 10px;border-radius:20px;
+  font-weight:500;
+}
+.status-pending{background:rgba(245,158,11,0.1);color:var(--yellow);border:1px solid rgba(245,158,11,0.2);}
+.status-confirmed{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,0.2);}
+.status-failed{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border);}
+
+/* TX history */
+.tx-list{display:flex;flex-direction:column;gap:8px;}
+.tx-item{
+  display:flex;align-items:center;gap:14px;
+  padding:14px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:8px;
+  transition:border-color .15s;
+}
+.tx-item:hover{border-color:rgba(255,255,255,0.12);}
+.tx-icon{
+  width:36px;height:36px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.tx-icon.deposit{background:var(--green-dim);}
+.tx-icon.withdraw{background:var(--red-dim);}
+.tx-info{flex:1;}
+.tx-type{font-size:13px;font-weight:500;color:var(--white);margin-bottom:2px;}
+.tx-hash{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+.tx-right{text-align:right;}
+.tx-amount{font-size:13px;font-weight:600;font-family:'JetBrains Mono',monospace;}
+.tx-amount.pos{color:var(--green);}
+.tx-amount.neg{color:var(--red);}
+.tx-time{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* Notes manager */
+.note-card{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;padding:18px;
+  margin-bottom:10px;
+  transition:border-color .15s;
+}
+.note-card:hover{border-color:rgba(255,255,255,0.12);}
+.note-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.note-card-title{font-size:13px;font-weight:600;color:var(--white);}
+.note-card-amount{
+  font-size:18px;font-weight:700;
+  font-family:'JetBrains Mono',monospace;
+  color:var(--green);
+}
+.note-card-secret{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;color:var(--muted);
+  background:rgba(0,0,0,0.3);
+  padding:8px 10px;border-radius:6px;
+  word-break:break-all;line-height:1.5;
+  margin-bottom:12px;
+}
+.note-card-footer{display:flex;gap:8px;}
+
+/* ── RIGHT PANEL ── */
+.panel{
+  border-left:1px solid var(--border);
+  padding:20px 18px;
+  background:var(--surface);
+}
+.panel-title{
+  font-size:12px;font-weight:600;
+  color:var(--muted);letter-spacing:.1em;text-transform:uppercase;
+  margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+.info-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid var(--border2);
+  font-size:12px;
+}
+.info-row:last-child{border-bottom:none;}
+.info-key{color:var(--muted);}
+.info-val{color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;}
+.info-val.green{color:var(--green);}
+.info-val.red{color:var(--red);}
+
+/* Pool stats */
+.pool-stat{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:14px;margin-bottom:8px;
+}
+.pool-stat-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.pool-stat-val{font-size:18px;font-weight:700;color:var(--white);font-family:'JetBrains Mono',monospace;}
+.pool-stat-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* Loading spinner */
+.spinner{
+  width:16px;height:16px;
+  border:2px solid rgba(255,255,255,0.2);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .6s linear infinite;
+  display:inline-block;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Toast */
+#toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 18px;
+  font-size:13px;color:var(--white);
+  display:flex;align-items:center;gap:10px;
+  z-index:999;
+  transform:translateY(80px);opacity:0;
+  transition:all .3s ease;
+  max-width:320px;
+}
+#toast.show{transform:translateY(0);opacity:1;}
+#toast.success{border-color:rgba(34,197,94,0.3);}
+#toast.error{border-color:var(--red-border);}
+
+/* Modal */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(4px);
+  z-index:200;
+  display:none;align-items:center;justify-content:center;
+}
+.modal-overlay.show{display:flex;}
+.modal{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:28px;
+  width:440px;max-width:90vw;
+  animation:modalIn .2s ease;
+}
+@keyframes modalIn{from{transform:scale(.95);opacity:0;}to{transform:scale(1);opacity:1;}}
+.modal-title{font-size:17px;font-weight:600;color:var(--white);margin-bottom:6px;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.modal-close{
+  position:absolute;top:16px;right:16px;
+  background:none;border:none;color:var(--muted);
+  font-size:18px;cursor:pointer;
+  transition:color .15s;
+}
+.modal-close:hover{color:var(--white);}
+
+/* Progress steps */
+.progress-steps{display:flex;gap:0;margin-bottom:24px;}
+.progress-step{
+  flex:1;text-align:center;position:relative;
+}
+.progress-step::after{
+  content:'';position:absolute;
+  top:12px;left:50%;right:-50%;
+  height:1px;background:var(--border);
+}
+.progress-step:last-child::after{display:none;}
+.ps-dot{
+  width:24px;height:24px;border-radius:50%;
+  background:var(--bg);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:600;color:var(--muted);
+  margin:0 auto 6px;position:relative;z-index:1;
+  transition:all .3s;
+}
+.ps-dot.done{background:var(--green);border-color:var(--green);color:#fff;}
+.ps-dot.active{background:var(--red);border-color:var(--red);color:#fff;}
+.ps-label{font-size:10px;color:var(--muted);}
+.ps-label.active{color:var(--white);}
+
+/* Responsive */
+@media(max-width:900px){
+  .app{grid-template-columns:1fr;}
+  .sidebar,.panel{display:none;}
+  .main{padding:16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <a href="prxvt-landing.html" class="topbar-logo">
+    <div class="logo-mark">S</div>
+    <span class="logo-text">Shield</span>
+  </a>
+  <div class="topbar-divider"></div>
+  <div class="chain-badge" onclick="toggleChain()">
+    <div class="chain-dot"></div>
+    <span id="chainName">Base Mainnet</span>
+    <span style="color:var(--muted);font-size:10px;">▾</span>
+  </div>
+  <div class="topbar-right">
+    <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">
+      <div class="wallet-dot" id="walletDot"></div>
+      <span id="walletLabel">Connect Wallet</span>
+    </button>
+  </div>
+</header>
+
+<!-- APP LAYOUT -->
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="nav-label">Main</div>
+    <div class="nav-item active" onclick="showPage('deposit')">
+      <span class="nav-icon">⬇️</span> Deposit
+    </div>
+    <div class="nav-item" onclick="showPage('withdraw')">
+      <span class="nav-icon">⬆️</span> Withdraw
+    </div>
+    <div class="nav-item" onclick="showPage('notes')">
+      <span class="nav-icon">🔐</span> My Notes
+      <span class="nav-badge-count" id="noteCount">0</span>
+    </div>
+
+    <div class="nav-label">History</div>
+    <div class="nav-item" onclick="showPage('history')">
+      <span class="nav-icon">📋</span> Transactions
+    </div>
+
+    <div class="nav-label">Info</div>
+    <div class="nav-item" onclick="showPage('stats')">
+      <span class="nav-icon">📊</span> Pool Stats
+    </div>
+    <div class="nav-item" onclick="window.open('shield-docs.html')">
+      <span class="nav-icon">📖</span> Docs
+    </div>
+
+    <div class="sidebar-stats">
+      <div class="stat-row">
+        <span class="stat-label">Network</span>
+        <span class="stat-val" id="sideNetwork">Base</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Privacy</span>
+        <span class="stat-val green">ZK-SNARK</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Token</span>
+        <span class="stat-val">USDC</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Balance</span>
+        <span class="stat-val green" id="sideBalance">—</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- DEPOSIT PAGE -->
+    <div class="page active" id="page-deposit">
+      <div class="page-header">
+        <div class="page-title">Deposit USDC</div>
+        <div class="page-sub">Generate a private note — your anonymous spending key</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="card-title-icon">1️⃣</span> Choose Denomination</div>
+        <div class="denom-row">
+          <div class="denom active" onclick="selectDenom(this,10)">10 USDC</div>
+          <div class="denom" onclick="selectDenom(this,100)">100 USDC</div>
+          <div class="denom" onclick="selectDenom(this,1000)">1,000 USDC</div>
+          <div class="denom" onclick="selectDenom(this,10000)">10,000 USDC</div>
+        </div>
+        <div class="privacy-meter">
+          <span class="privacy-icon">🔒</span>
+          <div class="privacy-info">
+            <div class="privacy-title">Anonymity Set</div>
+            <div class="privacy-bar"><div class="privacy-fill" id="privacyFill" style="width:35%"></div></div>
+            <div class="privacy-label" id="privacyLabel">35 deposits in pool — Good privacy</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="card-title-icon">2️⃣</span> Deposit Details</div>
+        <div class="input-group">
+          <div class="input-label">
+            Amount
+            <span id="balanceShow">Balance: —</span>
+          </div>
+          <div class="input-wrap">
+            <input type="number" id="depositAmount" value="10" placeholder="0" readonly />
+            <span class="input-suffix">USDC</span>
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="input-label">Recipient (optional — for agent routing)</div>
+          <div class="input-wrap">
+            <input type="text" id="depositRecipient" placeholder="0x... or leave blank for self" />
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="depositBtn" onclick="doDeposit()">
+          🔒 Generate Private Note & Deposit
+        </button>
+
+        <div class="note-box" id="depositNoteBox">
+          <div class="note-label">⚠️ Save this note — it's your spend key. Never share it!</div>
+          <div class="note-value" id="depositNoteVal"></div>
+          <div class="note-actions">
+            <button class="note-btn" onclick="copyNote()">📋 Copy Note</button>
+            <button class="note-btn" onclick="downloadNote()">⬇️ Download</button>
+            <button class="note-btn danger" onclick="clearNote()">🗑️ Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WITHDRAW PAGE -->
+    <div class="page" id="page-withdraw">
+      <div class="page-header">
+        <div class="page-title">Withdraw / Pay</div>
+        <div class="page-sub">Spend your private note — identity stays hidden</div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'withdraw-tab','tab-withdraw')">Withdraw</div>
+        <div class="tab" onclick="switchTab(this,'withdraw-tab','tab-pay')">Pay Merchant</div>
+      </div>
+
+      <div id="tab-withdraw">
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">🔑</span> Enter Your Note</div>
+          <div class="input-group">
+            <div class="input-label">Private Note (from deposit)</div>
+            <div class="input-wrap">
+              <input type="text" id="withdrawNote" placeholder="shield_note_v1_..." style="font-size:12px;" />
+            </div>
+          </div>
+          <div id="notePreview" style="display:none;" class="privacy-meter">
+            <span class="privacy-icon">✅</span>
+            <div class="privacy-info">
+              <div class="privacy-title" id="notePreviewTitle">Note valid — 100 USDC</div>
+              <div class="privacy-bar"><div class="privacy-fill" style="width:80%"></div></div>
+              <div class="privacy-label">Note found in Merkle tree</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">📤</span> Withdrawal Details</div>
+          <div class="input-group">
+            <div class="input-label">Recipient Address</div>
+            <div class="input-wrap">
+              <input type="text" id="withdrawAddr" placeholder="0x... destination wallet" />
+            </div>
+          </div>
+          <div class="input-group">
+            <div class="input-label">Relayer <span style="color:var(--green);font-size:10px;">Recommended for full privacy</span></div>
+            <div class="input-wrap">
+              <input type="text" id="withdrawRelayer" placeholder="shield-relayer.base.eth (optional)" />
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="doWithdraw()">
+            ⚡ Generate ZK Proof & Withdraw
+          </button>
+        </div>
+      </div>
+
+      <div id="tab-pay" style="display:none;">
+        <div class="card">
+          <div class="card-title"><span class="card-title-icon">💳</span> Private Payment (x402)</div>
+          <div class="input-group">
+            <div class="input-label">Your Note</div>
+            <div class="input-wrap">
+              <input type="text" id="payNote" placeholder="shield_note_v1_..." style="font-size:12px;" />
+            </div>
+          </div>
+          <div class="input-group">
+            <div class="input-label">Merchant / Recipient</div>
+            <div class="input-wrap">
+              <input type="text" id="payRecipient" placeholder="0x... merchant address" />
+            </div>
+          </div>
+          <div class="input-group">
+            <div class="input-label">Amount <span>Available: —</span></div>
+            <div class="input-wrap">
+              <input type="number" id="payAmount" placeholder="0.00" />
+              <span class="input-suffix">USDC</span>
+              <span class="input-max" onclick="document.getElementById('payAmount').value=100">MAX</span>
+            </div>
+          </div>
+          <div class="input-group">
+            <div class="input-label">Memo (encrypted, optional)</div>
+            <div class="input-wrap">
+              <input type="text" id="payMemo" placeholder="Invoice #1234..." />
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="doPay()">
+            🔒 Pay Privately via x402
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTES PAGE -->
+    <div class="page" id="page-notes">
+      <div class="page-header">
+        <div class="page-title">My Private Notes</div>
+        <div class="page-sub">Your anonymous spending keys — stored locally only</div>
+      </div>
+
+      <div id="notesEmpty" style="text-align:center;padding:60px 20px;color:var(--muted);">
+        <div style="font-size:40px;margin-bottom:16px;">🔐</div>
+        <div style="font-size:14px;margin-bottom:8px;color:var(--text);">No notes yet</div>
+        <div style="font-size:12px;">Deposit USDC to generate your first private note</div>
+      </div>
+      <div id="notesList"></div>
+    </div>
+
+    <!-- HISTORY PAGE -->
+    <div class="page" id="page-history">
+      <div class="page-header">
+        <div class="page-title">Transaction History</div>
+        <div class="page-sub">All transactions are private — no identity linked</div>
+      </div>
+      <div class="tx-list" id="txList">
+        <div style="text-align:center;padding:60px 20px;color:var(--muted);">
+          <div style="font-size:36px;margin-bottom:12px;">📋</div>
+          <div style="font-size:13px;">No transactions yet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS PAGE -->
+    <div class="page" id="page-stats">
+      <div class="page-header">
+        <div class="page-title">Pool Statistics</div>
+        <div class="page-sub">Live anonymity set data</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+        <div class="pool-stat">
+          <div class="pool-stat-label">Total Deposited</div>
+          <div class="pool-stat-val">$2.4M</div>
+          <div class="pool-stat-sub">↑ 12% this week</div>
+        </div>
+        <div class="pool-stat">
+          <div class="pool-stat-label">Total Deposits</div>
+          <div class="pool-stat-val">1,847</div>
+          <div class="pool-stat-sub">Across all denominations</div>
+        </div>
+        <div class="pool-stat">
+          <div class="pool-stat-label">ZK Proofs Generated</div>
+          <div class="pool-stat-val">923</div>
+          <div class="pool-stat-sub">All verified on-chain</div>
+        </div>
+        <div class="pool-stat">
+          <div class="pool-stat-label">Avg Anonymity Set</div>
+          <div class="pool-stat-val">156</div>
+          <div class="pool-stat-sub">Per denomination pool</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Pool Breakdown</div>
+        <div class="info-row"><span class="info-key">10 USDC pool</span><span class="info-val green">847 deposits</span></div>
+        <div class="info-row"><span class="info-key">100 USDC pool</span><span class="info-val green">612 deposits</span></div>
+        <div class="info-row"><span class="info-key">1,000 USDC pool</span><span class="info-val green">298 deposits</span></div>
+        <div class="info-row"><span class="info-key">10,000 USDC pool</span><span class="info-val green">90 deposits</span></div>
+        <div class="info-row"><span class="info-key">Contract</span><span class="info-val">0xc2ff...614bc0</span></div>
+        <div class="info-row"><span class="info-key">Network</span><span class="info-val">Base Mainnet</span></div>
+        <div class="info-row"><span class="info-key">ZK Circuit</span><span class="info-val green">Groth16 ✓</span></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- RIGHT PANEL -->
+  <aside class="panel">
+    <div class="panel-title">🔗 Network</div>
+    <div class="info-row"><span class="info-key">Chain</span><span class="info-val" id="panelChain">Base Mainnet</span></div>
+    <div class="info-row"><span class="info-key">Status</span><span class="info-val green">● Live</span></div>
+    <div class="info-row"><span class="info-key">Block</span><span class="info-val" id="panelBlock">—</span></div>
+    <div class="info-row"><span class="info-key">Gas</span><span class="info-val" id="panelGas">~0.001 ETH</span></div>
+
+    <div class="panel-title" style="margin-top:20px;">👛 Wallet</div>
+    <div class="info-row"><span class="info-key">Address</span><span class="info-val" id="panelAddr">Not connected</span></div>
+    <div class="info-row"><span class="info-key">USDC Balance</span><span class="info-val green" id="panelBal">—</span></div>
+    <div class="info-row"><span class="info-key">ETH Balance</span><span class="info-val" id="panelEth">—</span></div>
+
+    <div class="panel-title" style="margin-top:20px;">🔐 Privacy</div>
+    <div class="info-row"><span class="info-key">ZK System</span><span class="info-val">Groth16</span></div>
+    <div class="info-row"><span class="info-key">Merkle Depth</span><span class="info-val">20 levels</span></div>
+    <div class="info-row"><span class="info-key">Nullifiers</span><span class="info-val green">On-chain</span></div>
+    <div class="info-row"><span class="info-key">Note Encrypt</span><span class="info-val">AES-256-GCM</span></div>
+
+    <div class="panel-title" style="margin-top:20px;">📦 My Notes</div>
+    <div class="info-row"><span class="info-key">Saved Notes</span><span class="info-val" id="panelNotes">0</span></div>
+    <div class="info-row"><span class="info-key">Total Value</span><span class="info-val green" id="panelNoteVal">0 USDC</span></div>
+  </aside>
+
+</div>
+
+<!-- TX PROGRESS MODAL -->
+<div class="modal-overlay" id="txModal">
+  <div class="modal" style="position:relative;">
+    <div class="modal-title" id="modalTitle">Processing Transaction</div>
+    <div class="modal-sub" id="modalSub">Please wait...</div>
+    <div class="progress-steps" id="progressSteps"></div>
+    <div id="modalContent"></div>
+    <button class="btn btn-ghost" id="modalCloseBtn" style="display:none;" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────
+const state = {
+  connected: false,
+  wallet: null,
+  balance: 0,
+  chain: 'Base Mainnet',
+  notes: JSON.parse(localStorage.getItem('shield_notes') || '[]'),
+  txs: JSON.parse(localStorage.getItem('shield_txs') || '[]'),
+  selectedDenom: 10,
+};
+
+// ── INIT ───────────────────────────────────
+function init() {
+  updateNoteCount();
+  updatePanelNotes();
+  renderTxHistory();
+  simulateBlockUpdates();
+  // Animate block number
+  let block = 18_432_100 + Math.floor(Math.random()*1000);
+  setInterval(()=>{
+    block += Math.floor(Math.random()*3);
+    const el = document.getElementById('panelBlock');
+    if(el) el.textContent = block.toLocaleString();
+  }, 3000);
+}
+
+// ── NAVIGATION ────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  // highlight sidebar
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if(n.textContent.trim().toLowerCase().includes(id.replace('-','')) ||
+       (id==='deposit' && n.textContent.includes('Deposit')) ||
+       (id==='withdraw' && n.textContent.includes('Withdraw')) ||
+       (id==='notes' && n.textContent.includes('Notes')) ||
+       (id==='history' && n.textContent.includes('Transaction')) ||
+       (id==='stats' && n.textContent.includes('Pool'))) {
+      n.classList.add('active');
+    }
+  });
+}
+
+// ── TAB SWITCH ────────────────────────────
+function switchTab(el, groupId, tabId) {
+  el.closest('.tabs').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const all = ['tab-withdraw','tab-pay'];
+  all.forEach(id=>{
+    const el2 = document.getElementById(id);
+    if(el2) el2.style.display = id===tabId ? 'block':'none';
+  });
+}
+
+// ── WALLET ────────────────────────────────
+function connectWallet() {
+  if(state.connected) { disconnectWallet(); return; }
+
+  showToast('🔗 Connecting wallet...','');
+  setTimeout(()=>{
+    state.connected = true;
+    state.wallet = '0x' + randomHex(40);
+    state.balance = (Math.random()*5000+100).toFixed(2);
+
+    const btn = document.getElementById('walletBtn');
+    btn.classList.add('connected');
+    document.getElementById('walletLabel').textContent = truncate(state.wallet);
+    document.getElementById('walletDot').style.background = 'var(--green)';
+    document.getElementById('panelAddr').textContent = truncate(state.wallet);
+    document.getElementById('panelBal').textContent = '$' + Number(state.balance).toLocaleString() + ' USDC';
+    document.getElementById('panelEth').textContent = (Math.random()*0.5+0.01).toFixed(4) + ' ETH';
+    document.getElementById('balanceShow').textContent = 'Balance: $' + Number(state.balance).toLocaleString();
+    document.getElementById('sideBalance').textContent = '$' + Number(state.balance).toLocaleString();
+    showToast('✅ Wallet connected!','success');
+  }, 1200);
+}
+
+function disconnectWallet() {
+  state.connected = false;
+  state.wallet = null;
+  const btn = document.getElementById('walletBtn');
+  btn.classList.remove('connected');
+  document.getElementById('walletLabel').textContent = 'Connect Wallet';
+  document.getElementById('walletDot').style.background = 'var(--muted)';
+  document.getElementById('panelAddr').textContent = 'Not connected';
+  document.getElementById('panelBal').textContent = '—';
+  document.getElementById('panelEth').textContent = '—';
+  document.getElementById('sideBalance').textContent = '—';
+  showToast('Wallet disconnected','');
+}
+
+// ── CHAIN TOGGLE ──────────────────────────
+const chains = ['Base Mainnet','Base Sepolia','Polygon'];
+let chainIdx = 0;
+function toggleChain(){
+  chainIdx = (chainIdx+1)%chains.length;
+  state.chain = chains[chainIdx];
+  document.getElementById('chainName').textContent = state.chain;
+  document.getElementById('panelChain').textContent = state.chain;
+  document.getElementById('sideNetwork').textContent = state.chain.split(' ')[0];
+  showToast('🔗 Switched to ' + state.chain,'');
+}
+
+// ── DENOMINATION SELECT ───────────────────
+function selectDenom(el, val) {
+  document.querySelectorAll('.denom').forEach(d=>d.classList.remove('active'));
+  el.classList.add('active');
+  state.selectedDenom = val;
+  document.getElementById('depositAmount').value = val;
+
+  const sets = {10:35, 100:82, 1000:156, 10000:90};
+  const s = sets[val] || 35;
+  const pct = Math.min(Math.round(s/200*100), 100);
+  document.getElementById('privacyFill').style.width = pct+'%';
+  const quality = s < 50 ? 'Fair' : s < 100 ? 'Good' : 'Excellent';
+  document.getElementById('privacyLabel').textContent = `${s} deposits in pool — ${quality} privacy`;
+}
+
+// ── DEPOSIT ───────────────────────────────
+async function doDeposit() {
+  if(!state.connected){ showToast('⚠️ Connect wallet first','error'); return; }
+
+  const amount = state.selectedDenom;
+  showModal('Depositing ' + amount + ' USDC', 'Generating ZK commitment...', [
+    'Approve USDC', 'Generate Note', 'Submit TX', 'Confirmed'
+  ]);
+
+  await stepModal(0, 1200, 'Approve USDC', 'Requesting USDC approval...');
+  await stepModal(1, 1800, 'Generate Note', 'Computing cryptographic commitment...');
+  await stepModal(2, 2200, 'Submit TX', 'Broadcasting to ' + state.chain + '...');
+  await stepModal(3, 1000, 'Confirmed', 'Transaction confirmed!');
+
+  // Generate note
+  const note = generateNote(amount);
+  state.notes.push(note);
+  localStorage.setItem('shield_notes', JSON.stringify(state.notes));
+
+  // Add TX
+  addTx('deposit', amount, note.txHash);
+
+  // Show note
+  document.getElementById('depositNoteVal').textContent = note.secret;
+  document.getElementById('depositNoteBox').classList.add('show');
+
+  updateNoteCount();
+  updatePanelNotes();
+  renderNotes();
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="privacy-meter" style="margin-top:16px;">
+      <span class="privacy-icon">✅</span>
+      <div class="privacy-info">
+        <div class="privacy-title">Deposit successful!</div>
+        <div class="privacy-bar"><div class="privacy-fill" style="width:100%;background:var(--green);"></div></div>
+        <div class="privacy-label">Note saved. TX: ${truncate(note.txHash)}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('modalCloseBtn').style.display='block';
+  showToast('✅ Deposited ' + amount + ' USDC!', 'success');
+}
+
+// ── WITHDRAW ──────────────────────────────
+async function doWithdraw() {
+  const noteStr = document.getElementById('withdrawNote').value.trim();
+  const addr    = document.getElementById('withdrawAddr').value.trim();
+
+  if(!noteStr){ showToast('⚠️ Enter your private note','error'); return; }
+  if(!addr){ showToast('⚠️ Enter recipient address','error'); return; }
+  if(!addr.startsWith('0x')){ showToast('⚠️ Invalid address format','error'); return; }
+
+  const note = state.notes.find(n=>n.secret===noteStr) || {amount:100, secret:noteStr};
+
+  showModal('Withdrawing ' + note.amount + ' USDC', 'Generating zero-knowledge proof...', [
+    'Verify Note', 'Generate Proof', 'Submit TX', 'Confirmed'
+  ]);
+
+  await stepModal(0, 1000, 'Verify Note', 'Checking Merkle tree inclusion...');
+  await stepModal(1, 2500, 'Generate Proof', 'Computing Groth16 ZK proof...');
+  await stepModal(2, 1800, 'Submit TX', 'Broadcasting anonymously...');
+  await stepModal(3, 1000, 'Confirmed', 'Withdrawal complete!');
+
+  // Remove note if found
+  state.notes = state.notes.filter(n=>n.secret!==noteStr);
+  localStorage.setItem('shield_notes', JSON.stringify(state.notes));
+
+  addTx('withdraw', note.amount, '0x'+randomHex(64));
+  updateNoteCount(); updatePanelNotes(); renderNotes();
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="privacy-meter" style="margin-top:16px;">
+      <span class="privacy-icon">✅</span>
+      <div class="privacy-info">
+        <div class="privacy-title">Withdrawal complete — identity unlinkable</div>
+        <div class="privacy-bar"><div class="privacy-fill" style="width:100%;background:var(--green);"></div></div>
+        <div class="privacy-label">Funds sent to ${truncate(addr)}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('modalCloseBtn').style.display='block';
+  showToast('✅ Withdrawn ' + note.amount + ' USDC!', 'success');
+
+  // validate note input live
+  document.getElementById('withdrawNote').value = '';
+  document.getElementById('notePreview').style.display = 'none';
+}
+
+// ── PAY ───────────────────────────────────
+async function doPay() {
+  const noteStr   = document.getElementById('payNote').value.trim();
+  const recipient = document.getElementById('payRecipient').value.trim();
+  const amount    = parseFloat(document.getElementById('payAmount').value);
+  const memo      = document.getElementById('payMemo').value.trim();
+
+  if(!noteStr){ showToast('⚠️ Enter your note','error'); return; }
+  if(!recipient){ showToast('⚠️ Enter merchant address','error'); return; }
+  if(!amount || isNaN(amount)){ showToast('⚠️ Enter amount','error'); return; }
+
+  showModal('Private Payment', 'Initiating x402 private payment...', [
+    'Verify Note', 'ZK Proof', 'x402 Handshake', 'Confirmed'
+  ]);
+
+  await stepModal(0, 900, 'Verify Note', 'Verifying private note...');
+  await stepModal(1, 2200, 'ZK Proof', 'Generating unlinkable proof...');
+  await stepModal(2, 1500, 'x402 Handshake', 'Completing x402 payment flow...');
+  await stepModal(3, 800, 'Confirmed', 'Payment confirmed privately!');
+
+  addTx('withdraw', amount, '0x'+randomHex(64));
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="privacy-meter" style="margin-top:16px;">
+      <span class="privacy-icon">✅</span>
+      <div class="privacy-info">
+        <div class="privacy-title">Payment of $${amount} USDC sent privately</div>
+        <div class="privacy-bar"><div class="privacy-fill" style="width:100%;background:var(--green);"></div></div>
+        <div class="privacy-label">Recipient: ${truncate(recipient)} · Identity: [HIDDEN]</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('modalCloseBtn').style.display='block';
+  showToast('✅ Paid $' + amount + ' USDC privately!','success');
+}
+
+// ── NOTES ─────────────────────────────────
+function renderNotes() {
+  const list = document.getElementById('notesList');
+  const empty = document.getElementById('notesEmpty');
+  if(!state.notes.length){ empty.style.display='block'; list.innerHTML=''; return; }
+  empty.style.display='none';
+  list.innerHTML = state.notes.map((n,i)=>`
+    <div class="note-card">
+      <div class="note-card-header">
+        <div class="note-card-title">Note #${i+1} · ${n.denomination} USDC</div>
+        <div class="note-card-amount">+${n.denomination} USDC</div>
+      </div>
+      <div class="note-card-secret">${n.secret}</div>
+      <div class="note-card-footer">
+        <button class="note-btn" onclick="copyText('${n.secret}')">📋 Copy</button>
+        <button class="note-btn" onclick="useNote('${n.secret}')">⬆️ Use</button>
+        <button class="note-btn danger" onclick="deleteNote(${i})">🗑️ Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteNote(i){
+  if(!confirm('Delete this note? This cannot be undone.')) return;
+  state.notes.splice(i,1);
+  localStorage.setItem('shield_notes',JSON.stringify(state.notes));
+  updateNoteCount(); updatePanelNotes(); renderNotes();
+  showToast('Note deleted','');
+}
+function useNote(secret){
+  document.getElementById('withdrawNote').value = secret;
+  document.getElementById('payNote').value = secret;
+  showPage('withdraw');
+  showToast('Note loaded — ready to withdraw','success');
+}
+function updateNoteCount(){
+  document.getElementById('noteCount').textContent = state.notes.length;
+}
+function updatePanelNotes(){
+  document.getElementById('panelNotes').textContent = state.notes.length;
+  const total = state.notes.reduce((s,n)=>s+n.denomination,0);
+  document.getElementById('panelNoteVal').textContent = total + ' USDC';
+}
+
+// ── TX HISTORY ────────────────────────────
+function addTx(type, amount, hash){
+  state.txs.unshift({type,amount,hash,time:Date.now()});
+  localStorage.setItem('shield_txs',JSON.stringify(state.txs.slice(0,50)));
+  renderTxHistory();
+}
+function renderTxHistory(){
+  const el = document.getElementById('txList');
+  if(!state.txs.length) return;
+  el.innerHTML = state.txs.map(tx=>`
+    <div class="tx-item">
+      <div class="tx-icon ${tx.type}">${tx.type==='deposit'?'⬇️':'⬆️'}</div>
+      <div class="tx-info">
+        <div class="tx-type">${tx.type==='deposit'?'Deposit':'Withdraw/Pay'}</div>
+        <div class="tx-hash">${truncate(tx.hash)}</div>
+      </div>
+      <div class="tx-right">
+        <div class="tx-amount ${tx.type==='deposit'?'pos':'neg'}">${tx.type==='deposit'?'+':'-'}${tx.amount} USDC</div>
+        <div class="tx-time">${timeAgo(tx.time)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── NOTE INPUT LIVE VALIDATION ─────────────
+document.getElementById('withdrawNote').addEventListener('input', function(){
+  const val = this.value.trim();
+  const preview = document.getElementById('notePreview');
+  const found = state.notes.find(n=>n.secret===val);
+  if(val.startsWith('shield_note_v1_') && val.length > 30){
+    preview.style.display='flex';
+    const amount = found ? found.denomination : '?';
+    document.getElementById('notePreviewTitle').textContent = `Note ${found?'found':'detected'} — ${amount} USDC`;
+  } else {
+    preview.style.display='none';
+  }
+});
+
+// ── NOTE ACTIONS ──────────────────────────
+let currentNote = '';
+function copyNote(){
+  currentNote = document.getElementById('depositNoteVal').textContent;
+  copyText(currentNote);
+}
+function downloadNote(){
+  const note = document.getElementById('depositNoteVal').textContent;
+  const blob = new Blob([JSON.stringify({note,timestamp:new Date().toISOString(),chain:state.chain},null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'shield-note-' + Date.now() + '.json';
+  a.click();
+  showToast('📥 Note downloaded','success');
+}
+function clearNote(){
+  document.getElementById('depositNoteBox').classList.remove('show');
+  document.getElementById('depositNoteVal').textContent = '';
+}
+function copyText(text){
+  navigator.clipboard.writeText(text).then(()=>showToast('📋 Copied to clipboard','success'));
+}
+
+// ── MODAL ─────────────────────────────────
+function showModal(title, sub, steps){
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalSub').textContent = sub;
+  document.getElementById('modalContent').innerHTML = '';
+  document.getElementById('modalCloseBtn').style.display='none';
+  document.getElementById('progressSteps').innerHTML = steps.map((s,i)=>`
+    <div class="progress-step">
+      <div class="ps-dot" id="psdot${i}">${i+1}</div>
+      <div class="ps-label" id="pslabel${i}">${s}</div>
+    </div>
+  `).join('');
+  document.getElementById('txModal').classList.add('show');
+}
+async function stepModal(idx, delay, label, sub){
+  document.getElementById('psdot'+idx).classList.add('active');
+  document.getElementById('pslabel'+idx).classList.add('active');
+  document.getElementById('modalSub').textContent = sub;
+  await sleep(delay);
+  document.getElementById('psdot'+idx).classList.remove('active');
+  document.getElementById('psdot'+idx).classList.add('done');
+  document.getElementById('psdot'+idx).textContent = '✓';
+}
+function closeModal(){
+  document.getElementById('txModal').classList.remove('show');
+}
+
+// ── TOAST ─────────────────────────────────
+let toastTimer;
+function showToast(msg, type){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + (type||'');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.className='',3000);
+}
+
+// ── HELPERS ───────────────────────────────
+function generateNote(amount){
+  const secret = 'shield_note_v1_' + randomHex(64);
+  return {
+    secret, amount, denomination: amount,
+    txHash: '0x' + randomHex(64),
+    timestamp: Date.now(),
+    chain: state.chain,
+  };
+}
+function randomHex(n){ return [...Array(n)].map(()=>Math.floor(Math.random()*16).toString(16)).join(''); }
+function truncate(s){ return s ? s.slice(0,6)+'...'+s.slice(-4) : ''; }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function timeAgo(ts){
+  const d = (Date.now()-ts)/1000;
+  if(d<60) return 'just now';
+  if(d<3600) return Math.floor(d/60)+'m ago';
+  if(d<86400) return Math.floor(d/3600)+'h ago';
+  return Math.floor(d/86400)+'d ago';
+}
+function simulateBlockUpdates(){
+  setInterval(()=>{ if(Math.random()>.7) renderTxHistory(); }, 10000);
+}
+
+// ── START ─────────────────────────────────
+init();
+renderNotes();
+</script>
+</body>
+</html>
