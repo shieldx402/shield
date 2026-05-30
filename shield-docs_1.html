@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shield Protocol — Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:15px;scroll-behavior:smooth;}
+:root{
+  --bg:#111111;
+  --sidebar:#0d0d0d;
+  --surface:#1a1a1a;
+  --border:rgba(255,255,255,0.07);
+  --text:#d4d4d4;
+  --muted:#6b7280;
+  --white:#f9fafb;
+  --accent:#e53e3e;
+  --accent-dim:rgba(229,62,62,0.12);
+  --accent-border:rgba(229,62,62,0.3);
+  --green:#22c55e;
+  --code-bg:#0d0d0d;
+}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  display:flex;
+  min-height:100vh;
+}
+::selection{background:var(--accent-dim);color:#fff;}
+::-webkit-scrollbar{width:4px;background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px;}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:260px;
+  min-width:260px;
+  background:var(--sidebar);
+  border-right:1px solid var(--border);
+  height:100vh;
+  position:fixed;
+  top:0;left:0;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+}
+
+.sidebar-header{
+  padding:20px 20px 0;
+  border-bottom:1px solid var(--border);
+  padding-bottom:16px;
+}
+.sidebar-logo{
+  display:flex;align-items:center;gap:10px;
+  text-decoration:none;
+  margin-bottom:12px;
+}
+.logo-icon{
+  width:28px;height:28px;
+  background:var(--accent);
+  border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;
+  flex-shrink:0;
+}
+.logo-name{
+  font-size:14px;font-weight:600;
+  color:var(--white);letter-spacing:0.04em;
+}
+.logo-version{
+  font-size:10px;color:var(--muted);
+  margin-left:auto;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:2px 6px;
+  letter-spacing:0.05em;
+}
+.sidebar-search{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:7px 12px;
+  cursor:pointer;
+  transition:border-color 0.15s;
+}
+.sidebar-search:hover{border-color:rgba(255,255,255,0.15);}
+.sidebar-search input{
+  background:none;border:none;outline:none;
+  font-family:'Inter',sans-serif;
+  font-size:12px;color:var(--muted);
+  width:100%;
+}
+.search-kbd{
+  font-size:10px;color:var(--muted);
+  border:1px solid var(--border);
+  border-radius:3px;padding:1px 5px;
+  margin-left:auto;flex-shrink:0;
+}
+
+.sidebar-nav{
+  padding:16px 12px;
+  flex:1;
+}
+.nav-group{margin-bottom:20px;}
+.nav-group-title{
+  font-size:10px;font-weight:600;
+  color:var(--muted);
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  padding:0 8px;
+  margin-bottom:4px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 8px;
+  border-radius:6px;
+  font-size:13px;
+  color:var(--muted);
+  text-decoration:none;
+  cursor:pointer;
+  transition:all 0.15s;
+  user-select:none;
+}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:var(--text);}
+.nav-item.active{
+  background:var(--accent-dim);
+  color:var(--white);
+  border:1px solid var(--accent-border);
+}
+.nav-item .nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.nav-badge{
+  margin-left:auto;
+  font-size:10px;
+  background:var(--accent-dim);
+  color:var(--accent);
+  border-radius:4px;
+  padding:1px 6px;
+  flex-shrink:0;
+}
+
+.sidebar-footer{
+  padding:16px 12px;
+  border-top:1px solid var(--border);
+}
+.sidebar-footer a{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 8px;
+  border-radius:6px;
+  font-size:12px;color:var(--muted);
+  text-decoration:none;
+  transition:all 0.15s;
+}
+.sidebar-footer a:hover{background:rgba(255,255,255,0.05);color:var(--text);}
+
+/* ── MAIN CONTENT ── */
+.main{
+  margin-left:260px;
+  flex:1;
+  display:flex;
+}
+.content{
+  flex:1;
+  max-width:780px;
+  padding:52px 56px 100px;
+  min-width:0;
+}
+.toc{
+  width:220px;
+  min-width:220px;
+  padding:52px 24px;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+  border-left:1px solid var(--border);
+}
+
+/* ── TOP NAV ── */
+.topnav{
+  position:fixed;
+  top:0;left:260px;right:0;
+  height:48px;
+  background:rgba(17,17,17,0.92);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 56px;
+  gap:16px;
+  z-index:50;
+}
+.breadcrumb{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;color:var(--muted);
+}
+.breadcrumb span{color:var(--text);}
+.topnav-right{
+  margin-left:auto;
+  display:flex;align-items:center;gap:12px;
+}
+.topnav-right a{
+  font-size:12px;color:var(--muted);
+  text-decoration:none;
+  display:flex;align-items:center;gap:6px;
+  transition:color 0.15s;
+}
+.topnav-right a:hover{color:var(--white);}
+
+/* ── CONTENT STYLES ── */
+.page-title{
+  font-size:30px;font-weight:600;
+  color:var(--white);
+  letter-spacing:-0.025em;
+  line-height:1.2;
+  margin-bottom:8px;
+  padding-top:48px;
+}
+.page-desc{
+  font-size:14px;color:var(--muted);
+  line-height:1.7;
+  margin-bottom:36px;
+  border-bottom:1px solid var(--border);
+  padding-bottom:28px;
+}
+
+h2{
+  font-size:18px;font-weight:600;
+  color:var(--white);
+  letter-spacing:-0.015em;
+  margin:36px 0 12px;
+  scroll-margin-top:60px;
+  display:flex;align-items:center;gap:8px;
+}
+h2::before{
+  content:'';
+  width:3px;height:18px;
+  background:var(--accent);
+  border-radius:2px;
+  flex-shrink:0;
+}
+h3{
+  font-size:14px;font-weight:600;
+  color:var(--white);
+  margin:24px 0 8px;
+  scroll-margin-top:60px;
+}
+p{
+  font-size:14px;color:var(--text);
+  line-height:1.8;margin-bottom:14px;
+}
+.lead{
+  font-size:15px;color:var(--text);
+  line-height:1.8;margin-bottom:20px;
+}
+strong{color:var(--white);font-weight:500;}
+a{color:var(--accent);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+/* callout */
+.callout{
+  border-radius:8px;
+  padding:16px 20px;
+  margin:20px 0;
+  font-size:13px;line-height:1.7;
+  display:flex;gap:12px;
+}
+.callout-info{background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);color:#93c5fd;}
+.callout-warn{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);color:#fcd34d;}
+.callout-tip{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);color:#86efac;}
+.callout-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+
+/* code */
+code{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:2px 6px;
+  color:#c4b5fd;
+}
+pre{
+  background:var(--code-bg);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:20px 24px;
+  overflow-x:auto;
+  margin:16px 0;
+  position:relative;
+}
+pre code{
+  background:none;border:none;padding:0;
+  font-size:13px;line-height:1.8;
+  color:var(--text);
+}
+.code-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 20px;
+  border-bottom:1px solid var(--border);
+  background:var(--surface);
+  border-radius:8px 8px 0 0;
+  margin-bottom:0;
+}
+.code-wrap{border-radius:8px;overflow:hidden;margin:16px 0;border:1px solid var(--border);}
+.code-wrap pre{border:none;border-radius:0;margin:0;}
+.code-lang{font-size:11px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;}
+.code-copy{font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;letter-spacing:0.05em;font-family:'Inter',sans-serif;}
+.code-copy:hover{color:var(--white);}
+
+/* syntax colors */
+.kw{color:#b794f4;}
+.fn{color:#81d4fa;}
+.str{color:#a5d6a7;}
+.cm{color:#546e7a;font-style:italic;}
+.num{color:#f78c6c;}
+.ty{color:#80cbc4;}
+
+/* steps */
+.steps{counter-reset:steps;margin:16px 0;}
+.step{
+  display:flex;gap:16px;
+  padding:16px 0;
+  border-bottom:1px solid var(--border);
+}
+.step:last-child{border-bottom:none;}
+.step-num{
+  width:26px;height:26px;
+  border-radius:50%;
+  background:var(--accent-dim);
+  border:1px solid var(--accent-border);
+  color:var(--accent);
+  font-size:12px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:2px;
+}
+.step-body p{margin-bottom:8px;font-size:13px;}
+.step-title{font-weight:600;color:var(--white);margin-bottom:6px;font-size:14px;}
+
+/* cards grid */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;}
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:20px;
+  text-decoration:none;
+  transition:all 0.15s;
+  display:block;
+}
+.card:hover{border-color:var(--accent-border);background:rgba(229,62,62,0.04);}
+.card-icon{font-size:20px;margin-bottom:10px;display:block;}
+.card-title{font-size:14px;font-weight:500;color:var(--white);margin-bottom:6px;}
+.card-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+
+/* table */
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;}
+th{text-align:left;font-weight:500;color:var(--muted);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 12px;border-bottom:1px solid var(--border);}
+td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);}
+tr:hover td{background:rgba(255,255,255,0.02);}
+.badge-new{background:var(--accent-dim);color:var(--accent);border-radius:4px;padding:2px 8px;font-size:10px;font-weight:500;}
+.badge-soon{background:rgba(245,158,11,0.1);color:#fcd34d;border-radius:4px;padding:2px 8px;font-size:10px;}
+
+/* TOC */
+.toc-title{
+  font-size:11px;font-weight:600;
+  color:var(--muted);letter-spacing:0.12em;
+  text-transform:uppercase;
+  margin-bottom:12px;
+}
+.toc-list{list-style:none;}
+.toc-list li{margin-bottom:6px;}
+.toc-list a{
+  font-size:12px;color:var(--muted);
+  text-decoration:none;
+  transition:color 0.15s;
+  display:block;
+  padding:2px 0;
+  border-left:2px solid transparent;
+  padding-left:10px;
+}
+.toc-list a:hover{color:var(--text);}
+.toc-list a.active{color:var(--white);border-left-color:var(--accent);}
+.toc-list .toc-sub a{padding-left:20px;font-size:11px;}
+
+/* divider */
+hr{border:none;border-top:1px solid var(--border);margin:32px 0;}
+
+/* nav footer */
+.doc-nav{
+  display:flex;justify-content:space-between;
+  margin-top:60px;
+  padding-top:24px;
+  border-top:1px solid var(--border);
+}
+.doc-nav-btn{
+  display:flex;flex-direction:column;gap:4px;
+  text-decoration:none;
+  padding:12px 16px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  transition:all 0.15s;
+  max-width:200px;
+}
+.doc-nav-btn:hover{border-color:var(--accent-border);}
+.doc-nav-label{font-size:11px;color:var(--muted);letter-spacing:0.05em;}
+.doc-nav-page{font-size:13px;font-weight:500;color:var(--white);}
+
+@media(max-width:1100px){.toc{display:none;}}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);z-index:200;}
+  .main{margin-left:0;}
+  .topnav{left:0;}
+  .content{padding:60px 20px 80px;}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html" class="sidebar-logo">
+      <div class="logo-icon">S</div>
+      <span class="logo-name">Shield Docs</span>
+      <span class="logo-version">v1.0</span>
+    </a>
+    <div class="sidebar-search">
+      <span style="font-size:13px;color:var(--muted);">🔍</span>
+      <input placeholder="Search docs..." readonly />
+      <span class="search-kbd">⌘K</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-group">
+      <div class="nav-group-title">Getting Started</div>
+      <a class="nav-item active" href="#intro">
+        <span class="nav-icon">📖</span> Introduction
+      </a>
+      <a class="nav-item" href="#quickstart">
+        <span class="nav-icon">⚡</span> Quick Start
+      </a>
+      <a class="nav-item" href="#installation">
+        <span class="nav-icon">📦</span> Installation
+      </a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Protocol</div>
+      <a class="nav-item" href="#overview">
+        <span class="nav-icon">🔒</span> px402 Overview
+      </a>
+      <a class="nav-item" href="#architecture">
+        <span class="nav-icon">🏗️</span> Architecture
+      </a>
+      <a class="nav-item" href="#zk-proofs">
+        <span class="nav-icon">🔐</span> ZK Proofs
+      </a>
+      <a class="nav-item" href="#erc4337">
+        <span class="nav-icon">⚙️</span> ERC-4337
+      </a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">SDK Reference</div>
+      <a class="nav-item" href="#sdk-init">
+        <span class="nav-icon">🚀</span> Initialization
+      </a>
+      <a class="nav-item" href="#sdk-deposit">
+        <span class="nav-icon">💰</span> Deposit
+      </a>
+      <a class="nav-item" href="#sdk-pay">
+        <span class="nav-icon">💸</span> Pay
+      </a>
+      <a class="nav-item" href="#sdk-verify">
+        <span class="nav-icon">✅</span> Verify
+        <span class="nav-badge">New</span>
+      </a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Guides</div>
+      <a class="nav-item" href="#agent-guide">
+        <span class="nav-icon">🤖</span> AI Agent Integration
+      </a>
+      <a class="nav-item" href="#compliance">
+        <span class="nav-icon">📋</span> Compliance
+      </a>
+      <a class="nav-item" href="#security">
+        <span class="nav-icon">🛡️</span> Security Model
+      </a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">Resources</div>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">📄</span> Whitepaper
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">🐙</span> GitHub
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-icon">💬</span> Telegram
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="#">
+      <span>🐦</span> Follow on X
+    </a>
+    <a href="#">
+      <span>🔗</span> Contract: 0xc2ff...614bc0
+    </a>
+  </div>
+</aside>
+
+<!-- TOP NAV -->
+<div class="topnav">
+  <div class="breadcrumb">
+    Shield Docs <span style="color:var(--border);">/</span>
+    <span>Introduction</span>
+  </div>
+  <div class="topnav-right">
+    <a href="#">
+      <span>🐙</span> GitHub
+    </a>
+    <a href="index.html" style="background:var(--accent-dim);border:1px solid var(--accent-border);padding:5px 14px;border-radius:6px;color:var(--accent);">
+      Launch App →
+    </a>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <article class="content">
+
+    <!-- INTRO -->
+    <section id="intro">
+      <h1 class="page-title">Shield Protocol</h1>
+      <p class="page-desc">Privacy-first payment infrastructure for autonomous AI agents on Base. Built on zero-knowledge proofs and ERC-4337 account abstraction.</p>
+
+      <p class="lead">Shield is an open-source protocol that enables AI agents to make <strong>anonymous, untraceable payments</strong> on-chain. In a world where every blockchain transaction is public by default, AI agents conducting autonomous transactions create massive privacy leaks — revealing their strategies, counterparties, and financial behavior.</p>
+
+      <p>Shield solves this by combining <strong>zero-knowledge cryptography</strong> with <strong>ERC-4337 account abstraction</strong>, allowing agents to spend funds privately without linking transactions to their identity or previous activity.</p>
+
+      <div class="callout callout-info">
+        <span class="callout-icon">ℹ️</span>
+        <div>Shield is currently live on <strong>Base Mainnet</strong>. The SDK supports TypeScript and Python. USDC is the primary token with multi-token support on the roadmap.</div>
+      </div>
+
+      <h2 id="why-shield">Why Shield?</h2>
+      <p>Every blockchain transaction is public by default. When an AI agent pays for a service, it reveals:</p>
+      <ul style="padding-left:20px;margin:12px 0;font-size:14px;color:var(--text);line-height:1.9;">
+        <li>Which services the agent uses</li>
+        <li>How frequently it transacts</li>
+        <li>Its counterparties and financial relationships</li>
+        <li>Strategy patterns that competitors can exploit</li>
+      </ul>
+      <p>Shield removes all of this exposure with a single SDK integration.</p>
+
+      <div class="cards">
+        <a class="card" href="#quickstart">
+          <span class="card-icon">⚡</span>
+          <div class="card-title">Quick Start</div>
+          <div class="card-desc">Install the SDK and make your first private payment in under 5 minutes.</div>
+        </a>
+        <a class="card" href="#overview">
+          <span class="card-icon">🔒</span>
+          <div class="card-title">Protocol Overview</div>
+          <div class="card-desc">Understand how px402 separates payment identity from transaction data.</div>
+        </a>
+        <a class="card" href="#zk-proofs">
+          <span class="card-icon">🔐</span>
+          <div class="card-title">ZK Proofs</div>
+          <div class="card-desc">Learn how zero-knowledge proofs guarantee privacy without trust.</div>
+        </a>
+        <a class="card" href="#agent-guide">
+          <span class="card-icon">🤖</span>
+          <div class="card-title">AI Agent Guide</div>
+          <div class="card-desc">Integrate Shield into LangChain, AutoGPT, Eliza, or any custom agent.</div>
+        </a>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- QUICK START -->
+    <section id="quickstart">
+      <h2>Quick Start</h2>
+      <p>Get up and running with Shield in under 5 minutes.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Install the SDK</div>
+            <div class="code-wrap">
+              <div class="code-header">
+                <span class="code-lang">bash</span>
+                <button class="code-copy" onclick="this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+              </div>
+              <pre><code>npm install @shield/sdk
+# or
+yarn add @shield/sdk</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Initialize the client</div>
+            <div class="code-wrap">
+              <div class="code-header">
+                <span class="code-lang">TypeScript</span>
+                <button class="code-copy" onclick="this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+              </div>
+              <pre><code><span class="kw">import</span> { <span class="ty">px402</span> } <span class="kw">from</span> <span class="str">'@shield/sdk'</span>;
+
+<span class="kw">const</span> client = <span class="kw">await</span> <span class="fn">px402</span>.create({
+  network:    <span class="str">'base'</span>,
+  token:      <span class="str">'USDC'</span>,
+  denomination: <span class="num">100</span>,   <span class="cm">// fixed amount in USDC</span>
+  erc4337:    <span class="kw">true</span>,
+});</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Deposit anonymously</div>
+            <div class="code-wrap">
+              <div class="code-header">
+                <span class="code-lang">TypeScript</span>
+                <button class="code-copy" onclick="this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+              </div>
+              <pre><code><span class="cm">// Deposit USDC — generates a private note</span>
+<span class="kw">const</span> note = <span class="kw">await</span> client.<span class="fn">deposit</span>({
+  amount: <span class="num">100</span>,
+  signer: agentWallet,
+});
+
+console.<span class="fn">log</span>(note.secret); <span class="cm">// keep this safe — it's your spend key</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">Pay without revealing identity</div>
+            <div class="code-wrap">
+              <div class="code-header">
+                <span class="code-lang">TypeScript</span>
+                <button class="code-copy" onclick="this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+              </div>
+              <pre><code><span class="kw">const</span> receipt = <span class="kw">await</span> client.<span class="fn">pay</span>({
+  to:    recipientAddress,
+  note:  note.secret,
+  proof: <span class="kw">await</span> note.<span class="fn">generateProof</span>(),
+});
+
+<span class="cm">// ✓ TX settled · identity: [UNLINKABLE]</span>
+console.<span class="fn">log</span>(receipt.txHash);</code></pre>
+            </div>
+            <div class="callout callout-tip" style="margin-top:12px;">
+              <span class="callout-icon">✅</span>
+              <div>The proof is generated client-side. Your agent's secrets never leave its environment.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- PROTOCOL OVERVIEW -->
+    <section id="overview">
+      <h2>px402 Protocol Overview</h2>
+      <p>px402 is the privacy payment protocol at the core of Shield. It cryptographically separates <strong>payment identity</strong> from <strong>transaction data</strong>.</p>
+
+      <h3>How it works</h3>
+      <p>The protocol uses a <strong>commitment scheme</strong> similar to Tornado Cash but purpose-built for AI agent payments with x402 compatibility:</p>
+
+      <table>
+        <thead>
+          <tr><th>Step</th><th>Action</th><th>Privacy</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>deposit()</code></td><td>Agent deposits USDC into Shield pool</td><td>Commitment hash stored, identity hidden</td></tr>
+          <tr><td><code>generateProof()</code></td><td>ZK proof of valid note ownership</td><td>No link to depositor wallet</td></tr>
+          <tr><td><code>pay()</code></td><td>On-chain verification + fund transfer</td><td>Nullifier prevents double-spend</td></tr>
+        </tbody>
+      </table>
+
+      <h3>x402 Compatibility</h3>
+      <p>Shield implements the <a href="#">x402 payment standard</a>, meaning any merchant or service that accepts x402 payments can receive funds from Shield agents without any additional integration.</p>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon">⚠️</span>
+        <div>Always use <strong>fixed denominations</strong> when depositing. Variable amounts can leak information through amount-based correlation attacks.</div>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ZK PROOFS -->
+    <section id="zk-proofs">
+      <h2>Zero-Knowledge Proofs</h2>
+      <p>Shield uses <strong>zk-SNARKs</strong> (Groth16) to generate proofs that verify transaction validity without revealing any private information.</p>
+
+      <h3>What the proof proves</h3>
+      <ul style="padding-left:20px;margin:12px 0;font-size:14px;color:var(--text);line-height:1.9;">
+        <li>The spender knows a valid secret that corresponds to a commitment in the Merkle tree</li>
+        <li>The nullifier has not been used before (prevents double-spending)</li>
+        <li>The proof was generated for this specific recipient and amount</li>
+      </ul>
+
+      <h3>What the proof does NOT reveal</h3>
+      <ul style="padding-left:20px;margin:12px 0;font-size:14px;color:var(--text);line-height:1.9;">
+        <li>Which commitment is being spent (anonymity set = all deposits)</li>
+        <li>The depositor's wallet address</li>
+        <li>Any prior transaction history</li>
+      </ul>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">TypeScript — proof generation</span>
+          <button class="code-copy" onclick="this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+        </div>
+        <pre><code><span class="cm">// Proofs are generated locally — never sent to Shield servers</span>
+<span class="kw">const</span> proof = <span class="kw">await</span> note.<span class="fn">generateProof</span>({
+  recipient:   recipientAddress,
+  relayer:     <span class="kw">null</span>,           <span class="cm">// optional: use relayer for full privacy</span>
+  fee:         <span class="num">0</span>,
+});
+
+<span class="cm">// proof.a, proof.b, proof.c → Groth16 proof</span>
+<span class="cm">// proof.input → public inputs (nullifier, root, recipient)</span></code></pre>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ERC-4337 -->
+    <section id="erc4337">
+      <h2>ERC-4337 Account Abstraction</h2>
+      <p>Shield uses ERC-4337 so agents can spend funds without a traditional EOA wallet — removing the final link between the agent's identity and its on-chain activity.</p>
+
+      <table>
+        <thead>
+          <tr><th>Feature</th><th>Standard Wallet</th><th>Shield + ERC-4337</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Requires private key</td><td>✓</td><td>✗</td></tr>
+          <tr><td>Links to wallet history</td><td>✓</td><td>✗</td></tr>
+          <tr><td>Supports batched ops</td><td>✗</td><td>✓</td></tr>
+          <tr><td>Gas sponsorship</td><td>✗</td><td>✓ <span class="badge-new">New</span></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <hr>
+
+    <!-- AGENT GUIDE -->
+    <section id="agent-guide">
+      <h2>AI Agent Integration</h2>
+      <p>Shield is designed to drop into any AI agent framework. Below are examples for the most common frameworks.</p>
+
+      <h3>LangChain</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">Python</span>
+          <button class="code-copy" onclick="this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+        </div>
+        <pre><code><span class="kw">from</span> shield_sdk <span class="kw">import</span> px402
+<span class="kw">from</span> langchain.tools <span class="kw">import</span> Tool
+
+client = px402.<span class="fn">create</span>(network=<span class="str">"base"</span>, token=<span class="str">"USDC"</span>)
+
+pay_tool = Tool(
+    name=<span class="str">"private_payment"</span>,
+    description=<span class="str">"Pay a recipient privately using Shield"</span>,
+    func=<span class="kw">lambda</span> args: client.<span class="fn">pay</span>(**args)
+)</code></pre>
+      </div>
+
+      <h3>Eliza / Virtuals Protocol</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang">TypeScript</span>
+          <button class="code-copy" onclick="this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+        </div>
+        <pre><code><span class="kw">import</span> { <span class="ty">px402</span> } <span class="kw">from</span> <span class="str">'@shield/sdk'</span>;
+<span class="kw">import</span> { <span class="ty">createAgent</span> } <span class="kw">from</span> <span class="str">'@ai16z/eliza'</span>;
+
+<span class="kw">const</span> shield = <span class="kw">await</span> <span class="fn">px402</span>.create({ network: <span class="str">'base'</span> });
+
+<span class="kw">const</span> agent = <span class="fn">createAgent</span>({
+  actions: [shield.<span class="fn">asAction</span>()],   <span class="cm">// drop-in action</span>
+});</code></pre>
+      </div>
+    </section>
+
+    <!-- NAV FOOTER -->
+    <nav class="doc-nav">
+      <a class="doc-nav-btn" href="#">
+        <span class="doc-nav-label">← Previous</span>
+        <span class="doc-nav-page">Home</span>
+      </a>
+      <a class="doc-nav-btn" href="#quickstart" style="text-align:right;">
+        <span class="doc-nav-label">Next →</span>
+        <span class="doc-nav-page">Quick Start</span>
+      </a>
+    </nav>
+
+  </article>
+
+  <!-- TABLE OF CONTENTS -->
+  <aside class="toc">
+    <div class="toc-title">On this page</div>
+    <ul class="toc-list">
+      <li><a href="#intro" class="active">Introduction</a></li>
+      <li><a href="#why-shield">Why Shield?</a></li>
+      <li><a href="#quickstart">Quick Start</a></li>
+      <li class="toc-sub"><ul class="toc-list">
+        <li><a href="#quickstart">Install SDK</a></li>
+        <li><a href="#quickstart">Initialize</a></li>
+        <li><a href="#quickstart">Deposit</a></li>
+        <li><a href="#quickstart">Pay</a></li>
+      </ul></li>
+      <li><a href="#overview">Protocol Overview</a></li>
+      <li><a href="#zk-proofs">ZK Proofs</a></li>
+      <li><a href="#erc4337">ERC-4337</a></li>
+      <li><a href="#agent-guide">AI Agent Guide</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+// Active TOC on scroll
+const sections = document.querySelectorAll('section[id]');
+const tocLinks = document.querySelectorAll('.toc-list a');
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      tocLinks.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.toc-list a[href="#${e.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+sections.forEach(s => obs.observe(s));
+
+// Active sidebar on click
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
